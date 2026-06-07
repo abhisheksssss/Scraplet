@@ -18,6 +18,9 @@ class JinaEmbeddingFunction(EmbeddingFunction):
             "Authorization": f"Bearer {self.api_key}"
         }
 
+    def name(self) -> str:
+        return "jina-embeddings-v5-text-small"
+
     def __call__(self, input: Documents) -> Embeddings:
         # ChromaDB may pass empty lists
         if not input:

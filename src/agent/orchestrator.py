@@ -229,6 +229,14 @@ def run_agent_task(
         "CRITICAL: You MUST use the native tool calling API to execute actions. "
         "Do NOT write raw JSON tool blocks in your text response. You must trigger the actual function call."
     )
+    if include_web:
+        instructions += (
+            "\n\nWEB BROWSING RULES:\n"
+            "If you use `web_search`, it will return a list of titles, URLs, and short snippets.\n"
+            "If the snippet DOES NOT contain the full answer to the user's question, you MUST immediately use the `browser_fetch_url` tool to scrape the actual URL content to find the answer.\n"
+            "DO NOT just tell the user 'I found a link, go read it'. You must scrape it and answer their question yourself!\n"
+            "CRITICAL: Do NOT attempt to scrape video links (like YouTube or TikTok) as you cannot process video content. Prefer scraping text-based articles, news sites, or wikis!"
+        )
     if memory_context:
         instructions += f"\n\n{memory_context}"
 
@@ -262,7 +270,7 @@ def run_agent(goal: str | None = None) -> None:
         return
 
     console.print("[bold]Agent is thinking...[/bold]")
-    result = run_agent_task(goal)
+    result = run_agent_task(goal, include_web=True)
 
     console.print("[dim]Extracting memories...[/dim]")
     try:

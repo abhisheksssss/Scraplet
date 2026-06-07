@@ -23,21 +23,14 @@ class WebSearchArgs(BaseModel):
     limit: int = Field(5, ge=1, le=10, description="Maximum result count.")
 
 
-def _firecrawl_app() -> Any:
-    api_key = os.getenv("FIRECRAWL_API_KEY")
-    if not api_key:
-        raise RuntimeError("Set FIRECRAWL_API_KEY to use web_search or web_crawl.")
-    try:
-        from firecrawl import FirecrawlApp
-    except ImportError as exc:
-        raise RuntimeError("Install firecrawl-py to use Firecrawl tools.") from exc
-    return FirecrawlApp(api_key=api_key)
-
-
 def create_web_tools(tracker: ActionTracker) -> list[StructuredTool]:
     def fetch_url(url: str) -> str:
-        response = httpx.get(url, follow_redirects=True, timeout=20)
-        output = f"HTTP {response.status_code}\n\n{_clip(response.text, 16000)}"
+        try:
+            response = httpx.get(url, follow_redirects=True, timeout=20)
+            output = f"HTTP {response.status_code}\n\n{_clip(response.text, 16000)}"
+        except Exception as e:
+            output = f"ERROR: {e}"
+        
         tracker.log(
             action_type="code_analysis",
             path=f"fetch:{url}",
@@ -46,17 +39,67 @@ def create_web_tools(tracker: ActionTracker) -> list[StructuredTool]:
         )
         return output
 
+    def browser_fetch_url(url: str) -> str:
+        try:
+            from playwright.sync_api import sync_playwright
+            from bs4 import BeautifulSoup
+        except ImportError:
+            return "ERROR: Install playwright and beautifulsoup4"
+            
+        try:
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                page = browser.new_page()
+                page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                # Wait 2 seconds for client-side JavaScript frameworks to render
+                page.wait_for_timeout(2000)
+                
+                html = page.content()
+                browser.close()
+                
+            soup = BeautifulSoup(html, "html.parser")
+            for script in soup(["script", "style", "noscript", "svg", "img", "nav", "footer"]):
+                script.extract()
+            
+            text = soup.get_text(separator="\n")
+            lines = (line.strip() for line in text.splitlines())
+            output = "\n".join(chunk for chunk in lines if chunk)
+            output = _clip(output, 20000)
+            
+        except Exception as e:
+            output = f"ERROR: Playwright failed to fetch URL: {e}"
+
+        tracker.log(
+            action_type="code_analysis",
+            path=f"browser_fetch:{url}",
+            details={"after": output, "toolName": "browser_fetch_url"},
+            status="executed",
+        )
+        return output
+
     def web_search(query: str, limit: int = 5) -> str:
-        app = _firecrawl_app()
-        result = app.search(query, limit=limit)
-        items = result.get("data") or result.get("web") or []
-        lines: list[str] = []
-        for index, item in enumerate(items[:limit], start=1):
-            title = item.get("title") or "(untitled)"
-            url = item.get("url") or ""
-            snippet = item.get("description") or item.get("snippet") or ""
-            lines.append(f"{index}. {title}\n   {url}\n   {snippet}")
-        output = "\n\n".join(lines) or "(no result)"
+        try:
+            from ddgs import DDGS
+        except ImportError:
+            return "ERROR: Install ddgs"
+            
+        try:
+            with DDGS() as ddgs:
+                results = list(ddgs.text(query, max_results=limit))
+                
+            if not results:
+                output = "(no results found)"
+            else:
+                lines = []
+                for index, item in enumerate(results, start=1):
+                    title = item.get("title") or "(untitled)"
+                    url = item.get("href") or ""
+                    snippet = item.get("body") or ""
+                    lines.append(f"{index}. {title}\n   URL: {url}\n   {snippet}")
+                output = "\n\n".join(lines)
+        except Exception as e:
+            output = f"ERROR: Search failed: {e}"
+
         tracker.log(
             action_type="code_analysis",
             path=f"web_search:{query}",
@@ -65,36 +108,23 @@ def create_web_tools(tracker: ActionTracker) -> list[StructuredTool]:
         )
         return _clip(output)
 
-    def web_crawl(url: str) -> str:
-        app = _firecrawl_app()
-        result = app.scrape_url(url, params={"formats": ["markdown"]})
-        markdown = result.get("markdown") or result.get("data", {}).get("markdown") or ""
-        output = markdown or "(empty)"
-        tracker.log(
-            action_type="code_analysis",
-            path=f"web_crawl:{url}",
-            details={"after": _clip(output), "toolName": "web_crawl"},
-            status="executed",
-        )
-        return _clip(output)
-
     return [
         StructuredTool.from_function(
             fetch_url,
             name="fetch_url",
-            description="HTTP GET a URL and return response body.",
+            description="HTTP GET a URL and return raw response body. Extremely fast but fails on JS-rendered sites.",
+            args_schema=FetchUrlArgs,
+        ),
+        StructuredTool.from_function(
+            browser_fetch_url,
+            name="browser_fetch_url",
+            description="Open a headless Chromium browser, load a URL, wait for JS to render, and return the stripped text content. Slower but works perfectly on dynamic sites.",
             args_schema=FetchUrlArgs,
         ),
         StructuredTool.from_function(
             web_search,
             name="web_search",
-            description="Search the web using Firecrawl.",
+            description="Search the internet completely free using DuckDuckGo.",
             args_schema=WebSearchArgs,
-        ),
-        StructuredTool.from_function(
-            web_crawl,
-            name="web_crawl",
-            description="Scrape a URL into Markdown using Firecrawl.",
-            args_schema=FetchUrlArgs,
         ),
     ]

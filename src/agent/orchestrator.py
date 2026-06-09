@@ -1,4 +1,5 @@
 from __future__ import annotations
+import datetime
 
 import json
 import re
@@ -224,6 +225,7 @@ def run_agent_task(
     
     instructions = (
         f"Workspace root: {config.codebase_path}\n"
+        f"Current date and time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
         "All file, folder, and shell mutations are staged until user approval.\n"
         "Prefer reading existing files before editing them.\n\n"
         "CRITICAL: You MUST use the native tool calling API to execute actions. "
@@ -232,10 +234,10 @@ def run_agent_task(
     if include_web:
         instructions += (
             "\n\nWEB BROWSING RULES:\n"
-            "If you use `web_search`, it will return a list of titles, URLs, and short snippets.\n"
-            "If the snippet DOES NOT contain the full answer to the user's question, you MUST immediately use the `browser_fetch_url` tool to scrape the actual URL content to find the answer.\n"
-            "DO NOT just tell the user 'I found a link, go read it'. You must scrape it and answer their question yourself!\n"
-            "CRITICAL: Do NOT attempt to scrape video links (like YouTube or TikTok) as you cannot process video content. Prefer scraping text-based articles, news sites, or wikis!"
+            "1. WHEN TO SEARCH: If the user asks about news, weather, current events, or general knowledge, you MUST immediately use the `web_search` tool. Do NOT attempt to read non-existent local files (like 'news.txt') to find real-world information.\n"
+            "2. SCRAPE URLs: If `web_search` returns a list of URLs and short snippets, and the snippet DOES NOT contain the full answer, you MUST use the `browser_fetch_url` tool to scrape the actual URL content.\n"
+            "3. BE HELPFUL: DO NOT just tell the user 'I found a link, go read it'. You must scrape it and answer their question yourself!\n"
+            "4. AVOID VIDEOS: Do NOT attempt to scrape video links (like YouTube or TikTok) as you cannot process video content. Prefer text-based articles, news sites, or wikis!"
         )
     if memory_context:
         instructions += f"\n\n{memory_context}"

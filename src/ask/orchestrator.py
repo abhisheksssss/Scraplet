@@ -1,4 +1,5 @@
 from __future__ import annotations
+import datetime
 
 from dataclasses import dataclass
 
@@ -45,9 +46,16 @@ def answer_question(question: str, *, include_web: bool = True) -> AskResult:
         tools,
         instructions=(
             f"Workspace root: {config.codebase_path}\n"
-            "You are in Ask Mode. Do not modify files. Use tools for codebase research."
+            f"Current date and time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+            "You are in Ask Mode. Do not modify files. Use tools for codebase research.\n\n"
+            "WEB BROWSING RULES:\n"
+            "1. WHEN TO SEARCH: If the user asks about news, weather, current events, or general knowledge, you MUST immediately use the `web_search` tool.\n"
+            "2. SCRAPE URLs: If `web_search` returns a list of URLs and short snippets, and the snippet DOES NOT contain the full answer, you MUST use the `browser_fetch_url` tool to scrape the actual URL content.\n"
+            "3. BE HELPFUL: DO NOT just tell the user 'I found a link, go read it'. You must scrape it and answer their question yourself!\n"
+            "4. AVOID VIDEOS: Do NOT attempt to scrape video links (like YouTube or TikTok) as you cannot process video content. Prefer text-based articles, news sites, or wikis!"
         ),
         max_steps=20,
+        executor=executor,
     )
     return AskResult(answer=answer, tracker=tracker, executor=executor)
 

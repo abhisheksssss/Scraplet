@@ -1,4 +1,4 @@
-# 🎯 Scraplet: The Autonomous AI Coding Assistant
+# 🎯 Scraplet: The Autonomous AI Assistant
 
 > **Scraplet** is a powerful, terminal-based Personal AI assistant designed for speed, safety, and intelligence. Built with Python and FastAPI, it acts as your personal pair-programmer, capable of writing code, managing files, and iteratively running terminal commands to solve complex software engineering tasks autonomously.
 

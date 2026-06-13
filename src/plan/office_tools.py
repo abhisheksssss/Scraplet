@@ -71,12 +71,29 @@ def create_office_tools(tracker:ActionTracker)->list[StructuredTool]:
         try:
             from docx import Document
         except ImportError:
-            return "ERROR:python-docs is not installed".capitalize
+            return "ERROR: python-docx is not installed"
         
         try:
             doc=Document()
-            for para in paragraphs:
-                doc.add_paragraph(para)
+            # Split all paragraphs by newline in case the LLM sends a single giant string
+            flat_lines = []
+            for p in paragraphs:
+                flat_lines.extend(p.split('\n'))
+                
+            for para in flat_lines:
+                para = para.strip()
+                if not para:
+                    continue
+                if para.startswith("# "):
+                    doc.add_heading(para[2:], level=1)
+                elif para.startswith("## "):
+                    doc.add_heading(para[3:], level=2)
+                elif para.startswith("### "):
+                    doc.add_heading(para[4:], level=3)
+                elif para.startswith("- ") or para.startswith("* "):
+                    doc.add_paragraph(para[2:], style='List Bullet')
+                else:
+                    doc.add_paragraph(para)
             os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
             doc.save(path)
 

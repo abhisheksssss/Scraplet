@@ -241,7 +241,8 @@ def run_agent_task(
             "2. SCRAPE URLs: If `web_search` returns a list of URLs and short snippets, and the snippet DOES NOT contain the full answer, you MUST use the `browser_fetch_url` tool to scrape the actual URL content.\n"
             "3. BE HELPFUL: DO NOT just tell the user 'I found a link, go read it'. You must scrape it and answer their question yourself!\n"
             "4. AVOID VIDEOS: Do NOT attempt to scrape video links (like YouTube or TikTok) as you cannot process video content. Prefer text-based articles, news sites, or wikis!"
-            "5. PRESENTATIONS: If the user asks for a presentation or slideshow, use `create_powerpoint`. Pick a `theme` color scheme intelligently based on the topic (e.g., 'dark_blue' for tech/AI, 'science' for research, 'corporate' for business, 'warm' for marketing). Act as a professional designer: write comprehensive, detailed bullet points per slide. Only use `create_html_presentation` if the user explicitly requests a web/HTML presentation."
+            "5. PRESENTATIONS: If the user asks for a presentation or slideshow, use `create_powerpoint`. Pick a `theme` color scheme intelligently based on the topic (e.g., 'dark_blue' for tech/AI, 'science' for research, 'corporate' for business, 'warm' for marketing). Act as a professional designer: write comprehensive, detailed bullet points per slide. Only use `create_html_presentation` if the user explicitly requests a web/HTML presentation.\n"
+            "6. DOCUMENTS: If the user asks for a Word document, use `create_word_document`. Provide properly formatted text: use `# ` for Main Title, `## ` for section headings, and `- ` for bullet points. The tool will parse these and format the Word document natively."
         )
     if memory_context:
         instructions += f"\n\n{memory_context}"

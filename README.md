@@ -29,6 +29,7 @@ Scraplet is designed to be an autonomous problem solver and interactive assistan
 *   **Python 3.11+**
 *   **[Ollama](https://ollama.com/)** (Required if you want to run local models)
 *   **[Docker Desktop](https://www.docker.com/products/docker-desktop/)** (Required for the Secure Agent Execution Sandbox)
+*   **[FFmpeg](https://ffmpeg.org/)** (Required for Whisper Speech-to-Text). On Windows, you can install it via `winget install "FFmpeg (Essentials Build)"`
 
 ### 1. Installation
 
@@ -48,10 +49,10 @@ To use the voice assistant capabilities, you must download the Kokoro TTS model 
    ```bash
    mkdir -p src/models
    ```
-2. Download [kokoro-v1.0.onnx](https://github.com/thewh1teagle/kokoro-onnx/releases/download/model/kokoro-v1.0.onnx) and place it in `src/models/`.
-3. Download [voices-v1.0.bin](https://github.com/thewh1teagle/kokoro-onnx/releases/download/model/voices-v1.0.bin) and place it in `src/models/`.
+2. Download [kokoro-v1.0.onnx](https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx) and place it in `src/models/`.
+3. Download [voices-v1.0.bin](https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin) and place it in `src/models/`.
 
-*(You can also use curl inside the `src/models/` folder: `curl -LO https://github.com/thewh1teagle/kokoro-onnx/releases/download/model/kokoro-v1.0.onnx` and `curl -LO https://github.com/thewh1teagle/kokoro-onnx/releases/download/model/voices-v1.0.bin`)*
+*(You can also use curl inside the `src/models/` folder: `curl -LO https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx` and `curl -LO https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin`)*
 
 ### 3. Wake Up (Configuration & Launch)
 

@@ -37,6 +37,7 @@ venv.bak/
 # Environment Variables
 .env
 .env.*
+!.env.example
 
 # Scraplet specific
 .scraplet/
@@ -58,3 +59,4 @@ ehthumbs.db
 Thumbs.db
 
 templete/*
+/src/models/*

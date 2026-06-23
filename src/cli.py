@@ -28,6 +28,11 @@ def wakeup() -> None:
     """Show the banner and choose CLI or Telegram mode."""
     run_wakeup()
 
+@app.command()
+def voice() -> None:
+    """Start the Voice Assistant mode."""
+    from .voice.orchestrator import run_voice_loop
+    run_voice_loop()
 
 @app.command()
 def ask(question: Optional[str] = typer.Argument(None)) -> None:

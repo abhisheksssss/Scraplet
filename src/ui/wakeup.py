@@ -98,7 +98,7 @@ def run_wakeup() -> None:
 
     mode = questionary.select(
         "Choose mode:",
-        choices=["CLI", "Telegram", "Exit"],
+        choices=["CLI", "Voice", "Telegram", "Exit"],
     ).ask()
 
     if mode in (None, "Exit"):
@@ -106,9 +106,10 @@ def run_wakeup() -> None:
         return
     if mode == "CLI":
         from ..cli import interactive_cli
-
         interactive_cli()
+    elif mode == "Voice":
+        from ..voice.orchestrator import run_voice_loop
+        run_voice_loop()
     else:
         from ..telegram.bot import run_telegram_bot
-
         run_telegram_bot()
